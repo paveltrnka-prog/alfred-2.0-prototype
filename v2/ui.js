@@ -291,7 +291,7 @@ window.ALFRED_UI = (() => {
           </div>
         </div>
         <div class="stay-res">
-          <span>Reservation 1291809101</span>
+          <span class="stay-res-id">Reservation 129&nbsp;180&nbsp;9101</span>
           <span class="stay-guests">${esc(guestText)} · ${esc(room)}</span>
         </div>
       </section>`;
