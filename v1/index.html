@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Alfred 2.0 prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=72" />
+</head>
+<body>
+  <div id="setup" class="setup hidden" aria-label="Test setup">
+    <div class="setup-card">
+      <p class="setup-kicker">Test setup</p>
+      <h1>Guest scenario</h1>
+      <p>Choose before handing the phone to the participant. This screen is not part of the product.</p>
+      <div class="setup-actions">
+        <a class="setup-btn" href="?guests=1">Single guest</a>
+        <a class="setup-btn setup-btn-primary" href="?guests=4">Multi-guest (4)</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <div class="phone" id="phone">
+      <div class="viewport" id="viewport">
+        <div class="viewport-scroll" id="viewport-scroll"></div>
+        <nav class="bottom-nav hidden" id="bottom-nav" data-active="reservation" aria-label="Main">
+          <button type="button" class="footer-tab is-active" data-tab="reservation" aria-current="page">
+            <span class="footer-ico" style="-webkit-mask-image:url('assets/icons/bell-concierge.svg');mask-image:url('assets/icons/bell-concierge.svg')"></span>
+            <span class="footer-label">Reservation</span>
+          </button>
+          <button type="button" class="footer-tab" data-tab="hotel">
+            <span class="footer-ico" style="-webkit-mask-image:url('assets/icons/briefcase-blank.svg');mask-image:url('assets/icons/briefcase-blank.svg')"></span>
+            <span class="footer-label">Hotel</span>
+          </button>
+          <button type="button" class="footer-tab" data-tab="key">
+            <span class="footer-ico" style="-webkit-mask-image:url('assets/icons/key.svg');mask-image:url('assets/icons/key.svg')"></span>
+            <span class="footer-label">Key</span>
+          </button>
+          <button type="button" class="footer-tab" data-tab="services" disabled aria-disabled="true">
+            <span class="footer-ico" style="-webkit-mask-image:url('assets/icons/hand-holding-heart.svg');mask-image:url('assets/icons/hand-holding-heart.svg')"></span>
+            <span class="footer-label">Services</span>
+          </button>
+          <button type="button" class="footer-tab" data-tab="activities" disabled aria-disabled="true">
+            <span class="footer-ico" style="-webkit-mask-image:url('assets/icons/compass.svg');mask-image:url('assets/icons/compass.svg')"></span>
+            <span class="footer-label">Activities</span>
+          </button>
+        </nav>
+        <div class="exit-bar" id="exit-bar">
+          <button type="button" class="exit-bar-btn" id="exit-bar-btn">Back to reservation</button>
+        </div>
+
+        <div id="next-step" class="next-step hidden" aria-live="polite">
+          <div class="next-step-backdrop" id="next-step-backdrop"></div>
+          <div class="next-step-sheet" role="dialog" aria-labelledby="next-step-title">
+            <div class="next-step-check" aria-hidden="true">✓</div>
+            <p class="next-step-kicker" id="next-step-kicker">Payment successful</p>
+            <h2 class="next-step-title" id="next-step-title">You’re one step closer</h2>
+            <p class="next-step-body" id="next-step-body"></p>
+            <button type="button" class="next-step-cta" id="next-step-cta">Continue</button>
+            <button type="button" class="next-step-secondary hidden" id="next-step-secondary">Back to reservation</button>
+          </div>
+        </div>
+
+        <div id="scan-overlay" class="scan-overlay hidden" aria-live="polite">
+          <div class="scan-overlay-card" id="scan-processing">
+            <div class="scan-spinner" aria-hidden="true"></div>
+            <p class="scan-overlay-title">Scanning passport…</p>
+            <p class="scan-overlay-sub">Reading name, date of birth and address</p>
+          </div>
+          <div class="scan-overlay-card scan-result hidden" id="scan-result">
+            <div class="scan-success-check" aria-hidden="true">✓</div>
+            <p class="scan-overlay-title">Document scanned</p>
+            <p class="scan-overlay-sub">We filled the guest form from your passport</p>
+            <dl class="scan-data">
+              <div style="--i:0"><dt>Name</dt><dd id="scan-name">Jan Novák</dd></div>
+              <div style="--i:1"><dt>Date of birth</dt><dd id="scan-dob">12. 5. 1988</dd></div>
+              <div style="--i:2"><dt>Passport</dt><dd id="scan-passport">123456789</dd></div>
+              <div style="--i:3"><dt>Address</dt><dd>Pařížská 12, 110 00 Praha</dd></div>
+            </dl>
+            <button type="button" class="scan-apply" id="scan-apply">Use these details</button>
+          </div>
+        </div>
+      </div>
+      <p class="proto-hint" id="proto-hint"></p>
+    </div>
+  </div>
+
+  <div id="bank" class="bank hidden" aria-label="Online banking">
+    <div class="bank-phone">
+      <header class="bank-top">
+        <p class="bank-brand">Demo Bank</p>
+        <p class="bank-secure">Secure payment</p>
+      </header>
+      <main class="bank-main">
+        <p class="bank-kicker">Payment request</p>
+        <h1 class="bank-merchant" id="bank-merchant">Merchant</h1>
+        <p class="bank-amount" id="bank-amount">0 Kč</p>
+        <dl class="bank-meta">
+          <div><dt>From</dt><dd>•••• 4821</dd></div>
+          <div><dt>Reference</dt><dd id="bank-ref">ALF-DEMO</dd></div>
+        </dl>
+        <p class="bank-note">Generic online-banking stand-in for prototype. Confirm to return into Alfred.</p>
+        <div class="bank-success" id="bank-success" aria-live="polite">
+          <div class="bank-success-card">
+            <div class="bank-success-check" aria-hidden="true">✓</div>
+            <p>Payment confirmed<span>Returning to Alfred…</span></p>
+          </div>
+        </div>
+      </main>
+      <footer class="bank-actions">
+        <button type="button" class="bank-btn bank-btn-ghost" id="bank-cancel">Cancel</button>
+        <button type="button" class="bank-btn bank-btn-primary" id="bank-confirm">Confirm payment</button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="ui.js?v=72"></script>
+  <script src="flows.js?v=72"></script>
+  <script src="app.js?v=72"></script>
+</body>
+</html>
