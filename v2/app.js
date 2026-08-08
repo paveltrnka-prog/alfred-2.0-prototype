@@ -392,7 +392,7 @@
       banner = document.createElement("div");
       banner.id = "demo-fill-banner";
       banner.className = "demo-fill-banner";
-      viewport.appendChild(banner);
+      banner.setAttribute("role", "status");
     }
     const guest = currentGuest();
     banner.innerHTML =
@@ -404,6 +404,15 @@
       guest.email;
     const show = demoAutofilled && (id === "ci-document-filled" || id === "ci-contact-filled");
     banner.classList.toggle("is-visible", show);
+    if (show) {
+      /* In-flow above the form so it never covers field labels. */
+      const host = screenEl(id)?.querySelector(".wiz-body");
+      if (host && banner.parentElement !== host) {
+        host.insertBefore(banner, host.firstChild);
+      }
+    } else if (banner.parentElement) {
+      banner.remove();
+    }
   }
 
   function syncScanGuest() {
