@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Alfred 2.0 — prototype versions</title>
+<title>Alfred 2.0 — prototype</title>
 <style>
   :root { --bg:#f2f2f2; --ink:#1b1b1b; --muted:#5c5c5c; --primary:#6f2f6a; --card:#fff; }
   * { box-sizing:border-box; }
@@ -14,31 +14,30 @@
   h1 { font-size:24px; margin:0 0 4px; }
   .sub { color:var(--muted); margin:0 0 28px; }
   .card { background:var(--card); border-radius:8px; padding:20px; margin-bottom:16px; }
-  .card h2 { font-size:18px; margin:0 0 4px; }
-  .card p { color:var(--muted); margin:0 0 16px; font-size:14px; }
+  .card h2 { font-size:18px; margin:0 0 8px; }
+  .card p { color:var(--muted); margin:0 0 16px; font-size:15px; }
   a.go { display:inline-block; background:var(--primary); color:#fff; text-decoration:none;
-         padding:12px 20px; border-radius:8px; font-weight:600; min-height:44px; }
+         padding:12px 20px; border-radius:8px; font-weight:600; min-height:44px; line-height:20px; }
   a.go:focus-visible { outline:3px solid #1b1b1b; outline-offset:2px; }
   .note { font-size:13px; color:var(--muted); margin-top:28px; }
+  .archive { margin-top:32px; font-size:13px; color:var(--muted); }
+  .archive a { color:var(--muted); }
 </style>
 </head>
 <body>
 <main>
   <h1>Alfred 2.0 — Pytloun Self Check-in Hotel Liberec</h1>
-  <p class="sub">Two versions of the clickable prototype, side by side. Best viewed on a phone.</p>
+  <p class="sub">Clickable prototype. Best viewed on a phone.</p>
 
   <div class="card">
-    <h2>v2 — current</h2>
-    <p>Hero photo with countdown, entrance motion, photo gallery, contact chips,
-       reworked Room access screen, English-only copy.</p>
-    <a class="go" href="v2/?guests=1">Open v2</a>
+    <h2>Open prototype</h2>
+    <p>Clearer home screen: one next step at a time (pay → deposit → check-in),
+       instead of everything at once. Hotel photo, contacts and room access are in place.</p>
+    <a class="go" href="v2/?guests=1">Open prototype</a>
   </div>
 
-  <div class="card">
-    <h2>v1 — baseline</h2>
-    <p>The state before the visual pass: no hero photo, no gallery, no motion.</p>
-    <a class="go" href="v1/?guests=1">Open v1</a>
-  </div>
+  <p class="archive">Previous version (crowded home, for comparison only):
+     <a href="v1/?guests=1">open baseline</a></p>
 
   <p class="note">Prototype only. All guest names, addresses, document numbers, card details
      and the Wi-Fi password are fictional. Nothing is submitted anywhere — there is no backend.</p>
