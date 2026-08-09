@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Alfred 2.0 — prototype</title>
+<title>Alfred 2.0 — prototype versions</title>
 <style>
   :root { --bg:#f2f2f2; --ink:#1b1b1b; --muted:#5c5c5c; --primary:#6f2f6a; --card:#fff; }
   * { box-sizing:border-box; }
@@ -20,24 +20,26 @@
          padding:12px 20px; border-radius:8px; font-weight:600; min-height:44px; line-height:20px; }
   a.go:focus-visible { outline:3px solid #1b1b1b; outline-offset:2px; }
   .note { font-size:13px; color:var(--muted); margin-top:28px; }
-  .archive { margin-top:32px; font-size:13px; color:var(--muted); }
-  .archive a { color:var(--muted); }
 </style>
 </head>
 <body>
 <main>
   <h1>Alfred 2.0 — Pytloun Self Check-in Hotel Liberec</h1>
-  <p class="sub">Clickable prototype. Best viewed on a phone.</p>
+  <p class="sub">Two clickable prototypes side by side. Best viewed on a phone.</p>
 
   <div class="card">
-    <h2>Open prototype</h2>
-    <p>Clearer home screen: one next step at a time (pay → deposit → check-in),
-       instead of everything at once. Hotel photo, contacts and room access are in place.</p>
-    <a class="go" href="v2/?guests=1">Open prototype</a>
+    <h2>Original — heavy home</h2>
+    <p>Friday baseline: hotel card, snackbar and many action cards on one screen
+       (pay, deposit, check-in, stay, departure, management).</p>
+    <a class="go" href="./?guests=1">Open original</a>
   </div>
 
-  <p class="archive">Previous version (crowded home, for comparison only):
-     <a href="v1/?guests=1">open baseline</a></p>
+  <div class="card">
+    <h2>v2 — clearer home</h2>
+    <p>One next step at a time (pay → deposit → check-in), checklist underneath,
+       hotel photo, contacts and room access.</p>
+    <a class="go" href="v2/?guests=1">Open v2</a>
+  </div>
 
   <p class="note">Prototype only. All guest names, addresses, document numbers, card details
      and the Wi-Fi password are fictional. Nothing is submitted anywhere — there is no backend.</p>

@@ -5,110 +5,101 @@
 window.ALFRED_FLOWS = (() => {
   const ui = () => window.ALFRED_UI;
 
-  function guestLabel(n) {
-    return `${n} ${n === 1 ? "guest" : "guests"}`;
-  }
-
   function guestBadge(guestsDone, guestTotal) {
-    return `${guestsDone}/${guestTotal} ${guestTotal === 1 ? "guest" : "guests"}`;
+    return `${guestsDone}/${guestTotal} guest`;
   }
 
-  /**
-   * Home / reservation — progressive disclosure.
-   * Hotel photo + contacts live on Hotel tab (`hotel` screen).
-   * @param {{phase:string, guestsDone:number, guestTotal:number, guestMode:string}} ctx
-   */
+  function hotelBadgeForPhase(phase) {
+    if (phase === "stay") return "Dnes";
+    if (phase === "departure") return "Odhlášený";
+    return "Za 2 týdny";
+  }
+
+  /** @param {{phase:string, guestsDone:number, guestTotal:number, guestMode:string}} ctx */
   function renderDashboard(ctx) {
     const U = ui();
     const { phase, guestsDone, guestTotal } = ctx;
     const checkedIn = ["stay", "departure"].includes(phase);
     const departed = phase === "departure";
-    const stepTotal = 3;
 
-    const payDone = phase !== "prearrival";
-    const preauthDone = phase === "checkin-ready" || checkedIn;
-    const checkinDone = checkedIn;
-    /* Same three flags drive the checklist checks and PProgress, so they agree. */
-    const stepDone = payDone + preauthDone + checkinDone;
+    let beforeCards = "";
+    let snack = "";
 
-    let primary = "";
     if (phase === "prearrival") {
-      primary = U.primaryStep({
-        key: "pay-stay",
-        title: "Pay for your stay",
-        step: 1,
-        stepDone,
-        stepTotal,
-        subtitle: "Complete payment to unlock check-in and your room key.",
-        cta: "Pay 11 670 CZK",
-        go: "payment"
-      });
+      snack = U.snackbar(
+        "Pay before you continue",
+        "Complete payment to unlock check-in and your room key."
+      );
+      beforeCards =
+        U.pcard({
+          key: "pay-stay",
+          state: "primary",
+          icon: "credit-card",
+          title: "Pay for your stay",
+          sub: "Required before check-in",
+          badge: "Pay 11 670 Kč",
+          go: "payment"
+        }) +
+        U.pcard({
+          state: "active",
+          icon: "shield",
+          title: "Pre-authorization",
+          sub: "Refundable deposit",
+          badge: "Pay 2000 Kč"
+        }) +
+        U.pcard({
+          state: "locked",
+          icon: "user-checkin",
+          title: "Check-in",
+          sub: "Available after payment",
+          badge: guestBadge(0, guestTotal)
+        });
     } else if (phase === "preauth") {
-      primary = U.primaryStep({
-        key: "preauth",
-        title: "Pre-authorization",
-        step: 2,
-        stepDone,
-        stepTotal,
-        subtitle: "Refundable deposit required before check-in.",
-        cta: "Pay 2 000 CZK",
-        action: "open-bank",
-        amount: "2 000 CZK",
-        merchant: "Pytloun Self Check-in Hotel Liberec — pre-authorization",
-        returnTo: "dash-checkin-ready",
-        doneHint: "Pre-authorization done — next: Check-in"
-      });
+      beforeCards =
+        U.pcard({
+          key: "preauth",
+          state: "primary",
+          icon: "shield",
+          title: "Pre-authorization",
+          sub: "Refundable deposit",
+          badge: "Pay 2000 Kč",
+          action: "open-bank",
+          amount: "2 000 Kč",
+          merchant: "Pytloun Self Hotel — pre-authorization",
+          returnTo: "dash-checkin-ready",
+          doneHint: "Pre-authorization done — next: Check-in"
+        }) +
+        U.pcard({
+          state: "locked",
+          icon: "user-checkin",
+          title: "Check-in",
+          sub: "Available after pre-authorization",
+          badge: guestBadge(0, guestTotal)
+        });
     } else if (phase === "checkin-ready") {
-      const guestHint =
-        guestsDone > 0 ? `${guestBadge(guestsDone, guestTotal)} completed` : "";
-      primary = U.primaryStep({
+      beforeCards = U.pcard({
         key: "checkin",
-        title: "Complete check-in",
-        step: 3,
-        stepDone,
-        stepTotal,
-        subtitle: guestHint || undefined,
-        cta: guestsDone > 0 ? "Continue check-in" : "Start check-in",
+        state: "primary",
+        icon: "user-checkin",
+        title: "Check-in",
+        sub: "Complete online before arrival",
+        badge: guestsDone > 0 ? guestBadge(guestsDone, guestTotal) : "Start",
         action: "open-checkin"
-      });
-    } else {
-      primary = U.primaryStep({
-        key: "room",
-        title: "You're checked in",
-        subtitle: departed
-          ? "Check-out is available until 05/18 · 11:00."
-          : "Your room key and stay details are ready.",
-        cta: departed ? "Start check-out" : "Open room & PIN",
-        go: departed ? "co-intro" : "key",
-        confirm: true,
-        image: U.HOTEL_PHOTOS[0].src,
-        imageAlt: U.HOTEL_PHOTOS[0].alt
       });
     }
 
-    // All Step 1–3 rows — short status ledger (nouns); primary card keeps action titles
-    const steps = [
-      { title: "Payment", done: payDone, current: phase === "prearrival" },
-      { title: "Deposit", done: preauthDone, current: phase === "preauth" },
-      { title: "Check-in", done: checkinDone, current: phase === "checkin-ready" }
-    ];
-    const checkRows = steps
-      .map((s) => U.checkRow({ done: s.done, current: s.current && !s.done, title: s.title }))
-      .join("");
+    const roomState = checkedIn ? "active" : "locked";
+    const checkoutState = departed ? "done" : checkedIn ? "active" : "locked";
 
-    const beforeSection = !checkedIn
-      ? U.section("BEFORE ARRIVAL", `<div class="check-list">${checkRows}</div>`)
-      : "";
-
-    const yourStayFull =
+    const yourStay =
       U.pcard({
         key: "room",
-        state: "active",
+        state: roomState,
         icon: "hotel",
         title: "Room & PIN",
         sub: "Instructions, room, map",
         chevron: true,
-        go: "key"
+        go: checkedIn ? "key" : undefined
       }) +
       U.pcard({
         state: "active",
@@ -125,74 +116,48 @@ window.ALFRED_FLOWS = (() => {
         chevron: true
       });
 
-    const yourStayInner = checkedIn
-      ? yourStayFull
-      : U.lockedStayRow();
-
-    const yourStayBlock = U.section("YOUR STAY", yourStayInner);
-
-    let bottomLinks = "";
-    const cancelLink = U.dashTextLink({
-      label: "Cancel reservation",
-      tone: "quiet",
-      go: "cancel"
+    const departure = U.pcard({
+      key: "checkout",
+      state: checkoutState,
+      icon: "calendar",
+      title: "Check-out",
+      sub: "Until 05/18 - 11:00",
+      chevron: true,
+      go: checkedIn && !departed ? "co-intro" : undefined
     });
-    if (!checkedIn) {
-      bottomLinks = `
-        <div class="dash-bottom-links">
-          ${U.dashTextLink({ label: "Change dates", tone: "action" })}
-          ${cancelLink}
-        </div>`;
-    } else {
-      const departure = U.pcard({
-        key: "checkout",
-        state: departed ? "done" : "active",
-        icon: "calendar",
-        title: "Check-out",
-        sub: "Until 05/18 - 11:00",
-        chevron: true,
-        go: !departed ? "co-intro" : undefined
-      });
-      const management = U.pcard({
+
+    const management =
+      U.pcard({
         state: "active",
         icon: "calendar-plus",
         title: "Change dates",
         sub: "Sa 16.5 – Mo 18.5",
         chevron: true
+      }) +
+      U.pcard({
+        state: "danger",
+        icon: "calendar-cancel",
+        title: "Cancel reservation",
+        chevron: true
       });
-      bottomLinks =
-        U.section("DEPARTURE", departure) +
-        U.section("RESERVATION MANAGEMENT", management) +
-        `<div class="dash-bottom-links">${cancelLink}</div>`;
-    }
 
-    const photoHeader = !checkedIn ? U.photoBand({ countdown: true }) : "";
+    const beforeSection = beforeCards
+      ? U.section("BEFORE ARRIVAL", beforeCards)
+      : "";
 
     return U.pageShell(
       `
-      ${U.homeNav()}
-      <div class="page-body page-body--home${!checkedIn ? " page-body--home-prearrival" : ""}">
-        ${photoHeader}
-        ${U.stayCard({ guests: guestTotal, guestsLabel: guestLabel(guestTotal), room: "Double room" })}
-        ${primary}
-        ${checkedIn ? `<div class="hotel-actions hotel-actions--dash">${U.contactChips()}</div>` : ""}
-        ${beforeSection}
-        ${yourStayBlock}
-        ${bottomLinks}
-        <div class="page-end-spacer"></div>
+      ${U.topNav()}
+      <div class="dash-top">
+        ${U.hotelCard({ badge: hotelBadgeForPhase(phase) })}
       </div>
-    `,
-      { flushTop: true }
-    );
-  }
-
-  function hotelPage() {
-    const U = ui();
-    return U.pageShell(
-      `
-      ${U.homeNav()}
-      <div class="page-body page-body--hotel">
-        ${U.hotelCard({ showBadge: false })}
+      <div class="page-body">
+        ${U.stayCard({ guests: guestTotal })}
+        ${snack}
+        ${beforeSection}
+        ${U.section("YOUR STAY", yourStay)}
+        ${U.section("DEPARTURE", departure)}
+        ${U.section("RESERVATION MANAGEMENT", management)}
         <div class="page-end-spacer"></div>
       </div>
     `,
@@ -206,17 +171,17 @@ window.ALFRED_FLOWS = (() => {
       {
         title: "Accommodation",
         sub: "(1x Double Room, room: Double 03, dates: Jun 24, 2026 - Jun 27, 2026, guests: 2)",
-        price: "13 140 CZK"
+        price: "13 140 Kč"
       },
       {
         title: "Discount - promotional price",
         sub: "(1x Double Room, room: Double 03, dates: Jun 24, 2026 - Jun 27, 2026, guests: 2)",
-        price: "-1 626 CZK"
+        price: "-1 626 Kč"
       },
       {
         title: "Resort fee",
         sub: "(guests: 2)",
-        price: "156 CZK"
+        price: "156 Kč"
       }
     ];
     const rows = items
@@ -238,15 +203,15 @@ window.ALFRED_FLOWS = (() => {
         <div class="pay-pending">
           <span class="pay-pending-ico">${U.icon("credit-card")}</span>
           <span class="pay-pending-label">Pending to pay</span>
-          <span class="pay-pending-amount">11 670 CZK</span>
+          <span class="pay-pending-amount">CZK 11 670</span>
         </div>
         <p class="pay-section-label">Items to pay</p>
         <div class="pay-items">${rows}</div>
       </div>
       <div class="wiz-footer">
         ${U.primaryBtn(
-          "Pay 11 670 CZK",
-          'data-action="open-bank" data-amount="11 670 CZK" data-merchant="Pytloun Self Check-in Hotel Liberec — stay" data-return-to="dash-preauth" data-done-hint="Stay payment done — next: Pre-authorization"'
+          "Pay 11 670 Kč",
+          'data-action="open-bank" data-amount="11 670 Kč" data-merchant="Pytloun Self Hotel — stay" data-return-to="dash-preauth" data-done-hint="Stay payment done — next: Pre-authorization"'
         )}
       </div>
     `);
@@ -518,41 +483,31 @@ window.ALFRED_FLOWS = (() => {
 
   function keyPage() {
     const U = ui();
-    const S = U.STAY_WINDOW;
-    // PIN validity derived from STAY_WINDOW (same source as stay strip)
-    const validity = `PIN valid from ${S.arrivalDate} ${S.arrivalTime} to ${S.departureDate} ${S.departureTime}`;
     return U.pageShell(`
-      ${U.wizardChrome({ title: "Room access", back: true })}
+      ${U.wizardChrome({ title: "Key", back: true })}
       <div class="wiz-body">
-        <ol class="key-steps">
-          <li>Press #</li>
-          <li>Enter the PIN</li>
-          <li>Press # again</li>
-        </ol>
+        <div class="info-banner info-banner--key">
+          <span class="why-ico">${U.icon("question-circle")}</span>
+          <span>Pro odemknutí klikněte na # vyplňte PIN a znovu klikněte na #</span>
+        </div>
         <div class="key-room-card">
           <div class="key-room-head">
             <span class="key-bed-ico">${U.icon("hotel")}</span>
-            <div class="key-room-meta">
-              <strong>Single room 101</strong>
-              <p class="key-loc">1st floor — turn left from the lift</p>
-            </div>
+            <strong>Jednolůžkový pokoj Single 101</strong>
           </div>
-          <!-- TODO: confirm whether the main entrance has a separate code -->
-          <p class="key-opens">Opens the building entrance and your room door</p>
           <div class="key-room-body">
-            <p class="key-validity">${U.esc(validity)}</p>
+            <p class="key-validity">PIN je platný od 22. 7. 8:00 do 27. 7. 7:00</p>
             <div class="key-pin-block">
-              <p class="key-pin-code">7085</p>
+              <p class="key-pin-code">7085#</p>
               <p class="key-pin-caption">PIN</p>
             </div>
           </div>
           <div class="key-room-foot">
             <button type="button" class="btn btn-primary btn-open" data-key="open" data-action="noop">
-              Open
+              Otevřít
             </button>
           </div>
         </div>
-        <a class="dash-text-link dash-text-link--quiet key-help-link" href="tel:${U.HOTEL_CONTACT.phone}">PIN not working? Call reception</a>
       </div>
     `);
   }
@@ -570,24 +525,6 @@ window.ALFRED_FLOWS = (() => {
       </div>
       <div class="wiz-footer">
         ${U.primaryBtn("Check-out", 'data-key="start" data-go="co-minibar"')}
-      </div>
-    `);
-  }
-
-  /** Cancellation — identical in every phase (no checkedIn branching). */
-  function cancelPage() {
-    const U = ui();
-    return U.pageShell(`
-      ${U.wizardChrome({ title: "Cancel reservation" })}
-      <div class="wiz-body">
-        <div class="form-card co-intro-card">
-          <p class="co-copy">Before your stay begins, cancellation follows the rate conditions of your booking. Once your stay has started, ending early is handled as a paid early departure under the same booking terms.</p>
-        </div>
-      </div>
-      <div class="wiz-footer wiz-footer-stack">
-        ${U.dangerBtn("Yes, cancel", 'data-key="confirm-cancel" data-action="cancel-confirm"')}
-        <a class="btn btn-outline" href="tel:${U.HOTEL_CONTACT.phone}">Call reception</a>
-        ${U.ghostBtn("Keep my reservation", 'data-key="keep" data-back="1"')}
       </div>
     `);
   }
@@ -670,7 +607,6 @@ window.ALFRED_FLOWS = (() => {
     "dash-checkin": { footer: "reservation", kind: "dash" },
     "dash-stay": { footer: "reservation", kind: "dash" },
     "dash-departure": { footer: "reservation", kind: "dash" },
-    hotel: { footer: "hotel", kind: "html", render: () => hotelPage() },
     payment: { kind: "html", render: () => paymentPage() },
     "ci-guest-list": { kind: "html", render: (ctx) => guestListPage(ctx) },
     "ci-document": { kind: "html", render: (ctx) => documentPage(false, ctx.guest) },
@@ -683,7 +619,6 @@ window.ALFRED_FLOWS = (() => {
     "ci-share": { kind: "html", render: () => sharePage() },
     "ci-complete": { kind: "html", render: (ctx) => completePage(ctx) },
     key: { footer: "key", kind: "html", render: () => keyPage() },
-    cancel: { kind: "html", render: () => cancelPage() },
     "co-intro": { kind: "html", render: () => coIntro() },
     "co-minibar": { kind: "html", render: () => coMinibar() },
     "co-consumption": { kind: "html", render: () => coConsumption() },

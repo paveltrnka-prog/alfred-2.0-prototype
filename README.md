@@ -2,9 +2,9 @@
 
 Interactive prototype for Previo guest app (Alfred 2.0).
 
-**Share with stakeholders:** https://paveltrnka-prog.github.io/alfred-2.0-prototype/versions.html
+**Share:** https://paveltrnka-prog.github.io/alfred-2.0-prototype/versions.html
 
-Opens the current (clearer home) prototype. Baseline is linked quietly for comparison only.
+Two builds coexist — do not overwrite one with the other:
 
-- Current: https://paveltrnka-prog.github.io/alfred-2.0-prototype/v2/?guests=1
-- Baseline: https://paveltrnka-prog.github.io/alfred-2.0-prototype/v1/?guests=1
+- **Original (heavy home):** https://paveltrnka-prog.github.io/alfred-2.0-prototype/?guests=1
+- **v2 (clearer home):** https://paveltrnka-prog.github.io/alfred-2.0-prototype/v2/?guests=1

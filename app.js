@@ -137,59 +137,7 @@
     void section.offsetWidth;
     section.classList.add("is-staggering");
     clearTimeout(playStagger._t);
-    /* Home dash: last delay 0.15 + 0.34 duration ≈ 500ms */
-    const hold = section.querySelector(".page-body--home") ? 520 : STAGGER_MS;
-    playStagger._t = setTimeout(() => section.classList.remove("is-staggering"), hold + 80);
-  }
-
-  function readDashProgressPct(root) {
-    const bar = root && root.querySelector(".p-progress");
-    if (!bar) return null;
-    const m = String(bar.className).match(/p-progress--(\d+)/);
-    return m ? Number(m[1]) : 0;
-  }
-
-  function snapshotDashMotion(root) {
-    const done = new Set();
-    if (!root) return { progress: null, done };
-    root.querySelectorAll(".check-row--done .check-row-title").forEach((el) => {
-      done.add(el.textContent.trim());
-    });
-    return { progress: readDashProgressPct(root), done };
-  }
-
-  /** Animate progress fill / checkmarks only when values actually change. */
-  function applyDashMotion(root, prev) {
-    if (!root || !prev || reduceMotion) return;
-
-    const fill = root.querySelector(".p-progress-fill");
-    const nextPct = readDashProgressPct(root);
-    if (fill && prev.progress != null && nextPct != null && prev.progress !== nextPct) {
-      fill.classList.remove("is-animating");
-      fill.style.transition = "none";
-      fill.style.width = `${prev.progress}%`;
-      requestAnimationFrame(() => {
-        fill.classList.add("is-animating");
-        fill.style.transition = "";
-        fill.style.width = `${nextPct}%`;
-        const clear = () => {
-          fill.classList.remove("is-animating");
-          fill.style.width = "";
-          fill.removeEventListener("transitionend", clear);
-        };
-        fill.addEventListener("transitionend", clear);
-      });
-    }
-
-    root.querySelectorAll(".check-row--done").forEach((row) => {
-      const title = row.querySelector(".check-row-title")?.textContent.trim();
-      if (!title || prev.done.has(title)) return;
-      const mark = row.querySelector(".check-row-mark");
-      if (!mark) return;
-      mark.classList.remove("is-check-pop");
-      void mark.offsetWidth;
-      mark.classList.add("is-check-pop");
-    });
+    playStagger._t = setTimeout(() => section.classList.remove("is-staggering"), STAGGER_MS + 80);
   }
 
   function bindActions(root) {
@@ -225,155 +173,13 @@
     viewportScroll.appendChild(section);
   }
 
-  /* —— Hotel slideshow + full-screen lightbox —— */
-  const photoLightbox = document.getElementById("photo-lightbox");
-  const photoLightboxScroller = document.getElementById("photo-lightbox-scroller");
-  const photoLightboxClose = document.getElementById("photo-lightbox-close");
-  const photoLightboxBackdrop = document.getElementById("photo-lightbox-backdrop");
-  const hotelPhotos = window.ALFRED_UI.HOTEL_PHOTOS || [];
-  let hotelSlideIndex = 0;
-  let lightboxOpener = null;
-  let lightboxOpen = false;
-  let slidePointerX = 0;
-
-  if (photoLightboxScroller && hotelPhotos.length) {
-    photoLightboxScroller.innerHTML = hotelPhotos
-      .map(
-        (p) =>
-          `<div class="photo-lightbox-slide"><img src="${p.src}" alt="${p.alt}" draggable="false" /></div>`
-      )
-      .join("");
-  }
-
-  function hotelScreenRoot() {
-    return screenEl("hotel");
-  }
-
-  function setHotelDots(index) {
-    const root = hotelScreenRoot();
-    if (!root) return;
-    root.querySelectorAll("[data-hotel-dot]").forEach((dot) => {
-      const on = Number(dot.dataset.hotelDot) === index;
-      dot.classList.toggle("is-active", on);
-      dot.setAttribute("aria-selected", on ? "true" : "false");
-    });
-  }
-
-  function scrollHotelSlideshowTo(index, { smooth = true } = {}) {
-    const root = hotelScreenRoot();
-    const track = root && root.querySelector("[data-hotel-slideshow]");
-    if (!track) return;
-    const width = track.clientWidth || 1;
-    track.scrollTo({ left: index * width, behavior: smooth ? "smooth" : "auto" });
-    hotelSlideIndex = index;
-    setHotelDots(index);
-  }
-
-  function openPhotoLightbox(index, opener) {
-    if (!photoLightbox || !photoLightboxScroller || !hotelPhotos.length) return;
-    lightboxOpener = opener || null;
-    lightboxOpen = true;
-    const i = Math.max(0, Math.min(hotelPhotos.length - 1, index));
-    hotelSlideIndex = i;
-    photoLightbox.classList.remove("hidden");
-    photoLightbox.setAttribute("aria-hidden", "false");
-    photoLightboxClose?.removeAttribute("tabindex");
-    requestAnimationFrame(() => {
-      photoLightbox.classList.add("is-open");
-      const w = photoLightboxScroller.clientWidth || 1;
-      photoLightboxScroller.scrollLeft = i * w;
-      photoLightboxClose?.focus();
-    });
-  }
-
-  function closePhotoLightbox() {
-    if (!photoLightbox || !lightboxOpen) return;
-    lightboxOpen = false;
-    photoLightbox.classList.remove("is-open");
-    photoLightbox.setAttribute("aria-hidden", "true");
-    photoLightboxClose?.setAttribute("tabindex", "-1");
-    setTimeout(() => {
-      photoLightbox.classList.add("hidden");
-      scrollHotelSlideshowTo(hotelSlideIndex, { smooth: false });
-      if (lightboxOpener && typeof lightboxOpener.focus === "function") {
-        lightboxOpener.focus();
-      }
-      lightboxOpener = null;
-    }, 220);
-  }
-
-  function bindHotelSlideshow(root) {
-    if (!root || root.__hotelSlideshowBound) return;
-    root.__hotelSlideshowBound = true;
-    const slideshow = root.querySelector("[data-hotel-slideshow]");
-
-    const onScroll = () => {
-      if (!slideshow) return;
-      const w = slideshow.clientWidth || 1;
-      const i = Math.round(slideshow.scrollLeft / w);
-      if (i !== hotelSlideIndex) {
-        hotelSlideIndex = i;
-        setHotelDots(i);
-      }
-    };
-    if (slideshow) slideshow.addEventListener("scroll", onScroll, { passive: true });
-
-    root.querySelectorAll("[data-hotel-dot]").forEach((dot) => {
-      dot.addEventListener("click", () => {
-        scrollHotelSlideshowTo(Number(dot.dataset.hotelDot) || 0);
-      });
-    });
-
-    root.querySelectorAll("[data-hotel-slide]").forEach((slide) => {
-      slide.addEventListener("pointerdown", (e) => {
-        slidePointerX = e.clientX;
-      });
-      slide.addEventListener("click", (e) => {
-        if (Math.abs(e.clientX - slidePointerX) > 10) return;
-        openPhotoLightbox(Number(slide.dataset.hotelSlide) || 0, slide);
-      });
-    });
-  }
-
-  bindHotelSlideshow(hotelScreenRoot());
-
-  if (photoLightboxScroller) {
-    photoLightboxScroller.addEventListener(
-      "scroll",
-      () => {
-        if (!lightboxOpen) return;
-        const w = photoLightboxScroller.clientWidth || 1;
-        hotelSlideIndex = Math.round(photoLightboxScroller.scrollLeft / w);
-      },
-      { passive: true }
-    );
-  }
-  if (photoLightboxClose) photoLightboxClose.addEventListener("click", closePhotoLightbox);
-  if (photoLightboxBackdrop) photoLightboxBackdrop.addEventListener("click", closePhotoLightbox);
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && lightboxOpen) {
-      e.preventDefault();
-      closePhotoLightbox();
-    }
-  });
-
-  function refreshScreen(id, { prevMotion = null } = {}) {
+  function refreshScreen(id) {
     const section = screenEl(id);
     if (!section) return;
     const wasActive = section.classList.contains("is-active");
-    const motionPrev =
-      prevMotion ||
-      (DASH_PHASE[id] && wasActive ? snapshotDashMotion(section) : null);
     section.innerHTML = renderScreen(id);
     bindActions(section);
-    if (id === "hotel") {
-      section.__hotelSlideshowBound = false;
-      bindHotelSlideshow(section);
-    }
-    if (wasActive) {
-      section.classList.add("is-active");
-      if (motionPrev) applyDashMotion(section, motionPrev);
-    }
+    if (wasActive) section.classList.add("is-active");
   }
 
   function refreshDashboards() {
@@ -392,7 +198,7 @@
       banner = document.createElement("div");
       banner.id = "demo-fill-banner";
       banner.className = "demo-fill-banner";
-      banner.setAttribute("role", "status");
+      viewport.appendChild(banner);
     }
     const guest = currentGuest();
     banner.innerHTML =
@@ -404,15 +210,6 @@
       guest.email;
     const show = demoAutofilled && (id === "ci-document-filled" || id === "ci-contact-filled");
     banner.classList.toggle("is-visible", show);
-    if (show) {
-      /* In-flow above the form so it never covers field labels. */
-      const host = screenEl(id)?.querySelector(".wiz-body");
-      if (host && banner.parentElement !== host) {
-        host.insertBefore(banner, host.firstChild);
-      }
-    } else if (banner.parentElement) {
-      banner.remove();
-    }
   }
 
   function syncScanGuest() {
@@ -500,33 +297,21 @@
   async function show(id, { push = true, dir = "forward", unlock = false } = {}) {
     if (!screens[id]) return;
 
-    const fromId = current;
-    let dashPrevMotion = null;
-    if (DASH_PHASE[id]) {
-      const motionSource = DASH_PHASE[fromId]
-        ? fromId
-        : DASH_PHASE[lastDash]
-          ? lastDash
-          : null;
-      if (motionSource) dashPrevMotion = snapshotDashMotion(screenEl(motionSource));
-    }
-
     // Keep dynamic screens fresh
     if (id === "ci-guest-list" || DASH_PHASE[id]) {
-      refreshScreen(id, { prevMotion: id === fromId ? dashPrevMotion : null });
+      refreshScreen(id);
     }
 
+    const fromId = current;
     const toEl = screenEl(id);
     if (!toEl) return;
 
     if (id === fromId) {
-      /* Re-render of the active screen: motion diffs already applied; no entrance replay.
-         Exception: initial load uses dir:"none" and should still stagger in. */
       toEl.classList.add("is-active");
       syncFooter(id);
       syncDemoBanner(id);
       syncExitBar(id);
-      if (dir === "none" && !reduceMotion) playStagger(toEl);
+      if (!reduceMotion) playStagger(toEl);
       return;
     }
     if (transitioning) return;
@@ -548,27 +333,13 @@
     syncExitBar(id);
     viewportScroll.scrollTop = 0;
 
-    /* Progress/check motion after the screen is visible so width transitions run */
-    if (DASH_PHASE[id] && dashPrevMotion) {
-      requestAnimationFrame(() => applyDashMotion(toEl, dashPrevMotion));
-    }
-
-    // Stagger content blocks only when entering a different screen
+    // Stagger content blocks (unlock:true / any dir except reduced-motion)
     if (!reduceMotion) playStagger(toEl);
 
     transitioning = false;
   }
 
   function back() {
-    // Cancel is only opened from dashboards. Those screens often sit on an empty
-    // (or stale) history stack because bank/check-in clears it on purpose. Use
-    // lastDash so Keep / chrome back restore the phase the guest left — without
-    // changing the empty-stack → dash-prearrival fallback other flows rely on.
-    if (current === "cancel") {
-      if (history.length) history.pop();
-      show(lastDash || "dash-prearrival", { push: false, dir: "back" });
-      return;
-    }
     const prev = history.pop();
     if (prev) show(prev, { push: false, dir: "back" });
     else show("dash-prearrival", { push: false, dir: "back" });
@@ -720,8 +491,8 @@
   async function openBank({ amount, merchant, returnTo, doneHint }) {
     bankReturnTo = returnTo || "dash-checkin";
     bankDoneHint = doneHint || "";
-    bankMerchant.textContent = merchant || "Pytloun Self Check-in Hotel Liberec";
-    bankAmount.textContent = amount || "0 CZK";
+    bankMerchant.textContent = merchant || "Pytloun Self Hotel";
+    bankAmount.textContent = amount || "0 Kč";
     bankRef.textContent = "ALF-" + Date.now().toString().slice(-6);
     if (bankSuccess) bankSuccess.classList.remove("is-visible");
     bankEl.classList.remove("hidden");
@@ -850,12 +621,6 @@
         await runDemoScan();
         return;
       }
-      if (action === "cancel-confirm") {
-        showToast("Reservation cancelled");
-        history.length = 0;
-        await show("dash-prearrival", { push: false, dir: "back", unlock: true });
-        return;
-      }
       if (action === "noop") return;
 
       const go = btn.dataset.go;
@@ -878,7 +643,6 @@
       const tab = btn.dataset.tab;
       await withPress(btn, async () => {
         if (tab === "reservation") await show(lastDash || "dash-prearrival", { push: false, dir: "fade" });
-        else if (tab === "hotel") await show("hotel", { push: false, dir: "fade" });
         else if (tab === "key") await show("key", { push: false, dir: "fade" });
       });
     });

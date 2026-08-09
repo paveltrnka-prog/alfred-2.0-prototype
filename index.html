@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=83" />
+  <link rel="stylesheet" href="styles.css?v=56" />
 </head>
 <body>
   <div id="setup" class="setup hidden" aria-label="Test setup">
@@ -31,7 +31,7 @@
             <span class="footer-ico" style="-webkit-mask-image:url('assets/icons/bell-concierge.svg');mask-image:url('assets/icons/bell-concierge.svg')"></span>
             <span class="footer-label">Reservation</span>
           </button>
-          <button type="button" class="footer-tab" data-tab="hotel">
+          <button type="button" class="footer-tab" data-tab="hotel" disabled aria-disabled="true">
             <span class="footer-ico" style="-webkit-mask-image:url('assets/icons/briefcase-blank.svg');mask-image:url('assets/icons/briefcase-blank.svg')"></span>
             <span class="footer-label">Hotel</span>
           </button>
@@ -97,7 +97,7 @@
       <main class="bank-main">
         <p class="bank-kicker">Payment request</p>
         <h1 class="bank-merchant" id="bank-merchant">Merchant</h1>
-        <p class="bank-amount" id="bank-amount">0 CZK</p>
+        <p class="bank-amount" id="bank-amount">0 Kč</p>
         <dl class="bank-meta">
           <div><dt>From</dt><dd>•••• 4821</dd></div>
           <div><dt>Reference</dt><dd id="bank-ref">ALF-DEMO</dd></div>
@@ -117,14 +117,8 @@
     </div>
   </div>
 
-  <div id="photo-lightbox" class="photo-lightbox hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Hotel photos">
-    <div class="photo-lightbox-backdrop" id="photo-lightbox-backdrop" tabindex="-1"></div>
-    <button type="button" class="photo-lightbox-close" id="photo-lightbox-close" aria-label="Close" tabindex="-1">×</button>
-    <div class="photo-lightbox-scroller" id="photo-lightbox-scroller" tabindex="-1"></div>
-  </div>
-
-  <script src="ui.js?v=83"></script>
-  <script src="flows.js?v=83"></script>
-  <script src="app.js?v=83"></script>
+  <script src="ui.js?v=56"></script>
+  <script src="flows.js?v=56"></script>
+  <script src="app.js?v=56"></script>
 </body>
 </html>
