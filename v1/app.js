@@ -340,15 +340,6 @@
   }
 
   function back() {
-    // Cancel is only opened from dashboards. Those screens often sit on an empty
-    // (or stale) history stack because bank/check-in clears it on purpose. Use
-    // lastDash so Keep / chrome back restore the phase the guest left — without
-    // changing the empty-stack → dash-prearrival fallback other flows rely on.
-    if (current === "cancel") {
-      if (history.length) history.pop();
-      show(lastDash || "dash-prearrival", { push: false, dir: "back" });
-      return;
-    }
     const prev = history.pop();
     if (prev) show(prev, { push: false, dir: "back" });
     else show("dash-prearrival", { push: false, dir: "back" });
@@ -500,7 +491,7 @@
   async function openBank({ amount, merchant, returnTo, doneHint }) {
     bankReturnTo = returnTo || "dash-checkin";
     bankDoneHint = doneHint || "";
-    bankMerchant.textContent = merchant || "Pytloun Self Check-in Hotel Liberec";
+    bankMerchant.textContent = merchant || "Pytloun Self Hotel";
     bankAmount.textContent = amount || "0 Kč";
     bankRef.textContent = "ALF-" + Date.now().toString().slice(-6);
     if (bankSuccess) bankSuccess.classList.remove("is-visible");
@@ -630,12 +621,6 @@
         await runDemoScan();
         return;
       }
-      if (action === "cancel-confirm") {
-        showToast("Reservation cancelled");
-        history.length = 0;
-        await show("dash-prearrival", { push: false, dir: "back", unlock: true });
-        return;
-      }
       if (action === "noop") return;
 
       const go = btn.dataset.go;
@@ -658,7 +643,6 @@
       const tab = btn.dataset.tab;
       await withPress(btn, async () => {
         if (tab === "reservation") await show(lastDash || "dash-prearrival", { push: false, dir: "fade" });
-        else if (tab === "hotel") await show("hotel", { push: false, dir: "fade" });
         else if (tab === "key") await show("key", { push: false, dir: "fade" });
       });
     });

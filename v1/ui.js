@@ -29,193 +29,50 @@ window.ALFRED_UI = (() => {
       </header>`;
   }
 
-  /** Home header: 32px logo + hotel name + same profile affordance */
-  function homeNav({ name = "Pytloun Hotel Liberec" } = {}) {
-    return `
-      <header class="top-nav top-nav--home">
-        <div class="top-nav-brand">
-          <img class="top-nav-logo top-nav-logo--sm" src="${A}/logo.png" alt="" draggable="false" />
-          <span class="top-nav-hotel">${esc(name)}</span>
-        </div>
-        <button type="button" class="top-nav-avatar" aria-label="Profile">${icon("user")}</button>
-      </header>`;
-  }
-
-  /** Hotel tab — photo + name + Call / E-mail / Directions (DS: PPhotoGallery + PBtnTag) */
-  function hotelCard({ badge = "Za 2 týdny", showBadge = true } = {}) {
+  function hotelCard({ badge = "Za 2 týdny" } = {}) {
     return `
       <section class="hotel-card">
         <div class="hotel-hero">
           <img class="hotel-hero-img" src="${A}/hero.png" alt="" draggable="false" />
-          ${showBadge ? `<span class="hotel-badge">${esc(badge)}</span>` : ""}
+          <span class="hotel-badge">${esc(badge)}</span>
           <div class="hotel-actions">
-            <a class="hotel-chip" href="tel:+420774484001">${iconImg("phone")} Call</a>
-            <a class="hotel-chip" href="mailto:hotel.liberec@pytloun-hotels.cz">${iconImg("envelope")} E-mail</a>
-            <a class="hotel-chip" href="https://maps.google.com/?q=Pytloun+Self+Check-in+Hotel+Liberec,+Hodkovicka+206,+460+06+Liberec" target="_blank" rel="noopener">${iconImg("location-pin")} Directions</a>
+            <span class="hotel-chip">${iconImg("phone")} Call</span>
+            <span class="hotel-chip">${iconImg("envelope")} E-mail</span>
+            <span class="hotel-chip">${iconImg("location-pin")} Directions</span>
           </div>
         </div>
         <div class="hotel-meta">
-          <h1 class="hotel-title">Pytloun Self Check-in Hotel Liberec</h1>
+          <h1 class="hotel-title">Pytloun Self Hotel</h1>
           <div class="hotel-loc">
             ${iconImg("location")}
-            <span>Hodkovická 206, Liberec</span>
+            <span>Prague, Czech Republic</span>
           </div>
         </div>
       </section>`;
   }
 
-  /** Flat reservation meta — no card / border */
-  function resMeta({ dates, guests, room }) {
+  function stayCard({ guests = 4 } = {}) {
     return `
-      <p class="res-meta">
-        <span>${esc(dates)}</span>
-        <span class="res-meta-dot" aria-hidden="true">·</span>
-        <span>${esc(guests)}</span>
-        <span class="res-meta-dot" aria-hidden="true">·</span>
-        <span>${esc(room)}</span>
-      </p>`;
-  }
-
-  /**
-   * Home focus card.
-   * DS: PTitleCard (device=mobile, color=white) + PProgress showText + PBtn type=primary
-   * Optional image = PPhotoGallery Device=Mobile (flush top band).
-   * @param {{title:string, subtitle?:string, cta:string, image?:string, step?:number, stepTotal?:number, key?:string, go?:string, action?:string, amount?:string, merchant?:string, returnTo?:string, doneHint?:string, confirm?:boolean}} opts
-   */
-  function primaryStep(opts) {
-    const attrs = [
-      opts.key ? `data-key="${esc(opts.key)}"` : "",
-      opts.go ? `data-go="${esc(opts.go)}"` : "",
-      opts.action ? `data-action="${esc(opts.action)}"` : "",
-      opts.amount ? `data-amount="${esc(opts.amount)}"` : "",
-      opts.merchant ? `data-merchant="${esc(opts.merchant)}"` : "",
-      opts.returnTo ? `data-return-to="${esc(opts.returnTo)}"` : "",
-      opts.doneHint ? `data-done-hint="${esc(opts.doneHint)}"` : ""
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    const ctaAttrs = attrs || `data-key="${esc(opts.key || "primary-cta")}"`;
-    const confirmCls = opts.confirm ? " primary-step--confirm" : "";
-    const photoCls = opts.image ? " primary-step--has-photo" : "";
-
-    /* PProgress: driven by COMPLETED steps, not the current step index, so the
-       bar can never disagree with the green checks in the checklist below.
-       0 done→0%, 1 done→25%, 2 done→50%, 3 done→100% (no 75% for 3 steps) */
-    const stepTotal = opts.stepTotal || 3;
-    const step = opts.step;
-    const stepDone = opts.stepDone;
-    const pctMap = { 0: 0, 1: 25, 2: 50, 3: 100 };
-    const pct = step != null ? pctMap[stepDone] ?? 0 : null;
-    const progressHtml =
-      pct != null
-        ? `<div class="p-progress p-progress--${pct}" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Step ${step} of ${stepTotal}">
-        <span class="p-progress-text">Step ${step} of ${stepTotal}</span>
-        <div class="p-progress-track" aria-hidden="true"><div class="p-progress-fill"></div></div>
-      </div>`
-        : "";
-
-    const subHtml = opts.subtitle
-      ? `<p class="primary-step-sub">${esc(opts.subtitle)}</p>`
-      : "";
-
-    const photoHtml = opts.image
-      ? `<div class="primary-step-photo"><img src="${esc(opts.image)}" alt="" draggable="false" /></div>`
-      : "";
-
-    return `
-      <section class="primary-step${confirmCls}${photoCls}">
-        ${photoHtml}
-        <h2 class="primary-step-title">${esc(opts.title)}</h2>
-        ${progressHtml}
-        ${subHtml}
-        ${
-          opts.cta
-            ? `<button type="button" class="btn btn-primary primary-step-cta" ${ctaAttrs}>${esc(opts.cta)}</button>`
-            : ""
-        }
-      </section>`;
-  }
-
-  /** DS: PSelectCard device=mobile color=white — done/current=active; upcoming=locked (GAP) */
-  function checkRow({ done = false, current = false, title }) {
-    const state = done ? "done" : current ? "current" : "upcoming";
-    return `
-      <div class="home-row check-row check-row--${state}">
-        <span class="home-rail" aria-hidden="true">
-          <span class="check-row-mark">${done ? "✓" : ""}</span>
-        </span>
-        <span class="check-row-title">${esc(title)}</span>
-      </div>`;
-  }
-
-  /** DS: PSelectCard state=locked (GAP — not in DS) */
-  function lockedStayRow({
-    title = "Room, PIN & check-out",
-    subtitle = "Available after check-in"
-  } = {}) {
-    return `
-      <div class="home-row locked-stay-row" aria-disabled="true">
-        <span class="home-rail" aria-hidden="true">
-          <span class="locked-stay-ico">${icon("lock")}</span>
-        </span>
-        <span class="locked-stay-text">
-          <strong class="locked-stay-title">${esc(title)}</strong>
-          <small class="locked-stay-sub">${esc(subtitle)}</small>
-        </span>
-      </div>`;
-  }
-
-  /** DS: PLink — action=primary, quiet=gray600 */
-  function dashTextLink({ label, key, go, action, tone = "default" }) {
-    const attrs = [
-      key ? `data-key="${esc(key)}"` : "",
-      go ? `data-go="${esc(go)}"` : "",
-      action ? `data-action="${esc(action)}"` : ""
-    ]
-      .filter(Boolean)
-      .join(" ");
-    const toneCls =
-      tone === "quiet"
-        ? " dash-text-link--quiet"
-        : tone === "action"
-          ? " dash-text-link--action"
-          : tone === "muted"
-            ? " dash-text-link--muted"
-            : "";
-    if (go || action) {
-      return `<button type="button" class="dash-text-link${toneCls}" ${attrs}>${esc(label)}</button>`;
-    }
-    return `<span class="dash-text-link dash-text-link--static${toneCls}" ${attrs}>${esc(label)}</span>`;
-  }
-
-  function stayCard({ guests = 4, guestsLabel, room = "Double room" } = {}) {
-    const guestText =
-      guestsLabel || `${guests} ${guests === 1 ? "guest" : "guests"}`;
-    return `
-      <section class="stay-card stay-card--home">
+      <section class="stay-card">
         <div class="stay-dates">
           <div class="stay-col">
             <span class="stay-label">Arrival</span>
-            <div class="stay-when">
-              <strong class="stay-date">Sa 16. 5.</strong>
-              <span class="stay-time">15:00</span>
-            </div>
+            <strong class="stay-date">Sa 16. 5.</strong>
+            <span class="stay-time">15:00</span>
           </div>
           <div class="stay-mid">
+            <span class="stay-arrow">${icon("arrow-right")}</span>
             <span class="stay-nights">2 nights</span>
           </div>
           <div class="stay-col stay-col-end">
             <span class="stay-label">Departure</span>
-            <div class="stay-when">
-              <strong class="stay-date">Mo 18. 5.</strong>
-              <span class="stay-time">11:00</span>
-            </div>
+            <strong class="stay-date">Mo 18. 5.</strong>
+            <span class="stay-time">11:00</span>
           </div>
         </div>
         <div class="stay-res">
-          <span>Reservation 1291809101</span>
-          <span class="stay-guests">${esc(guestText)} · ${esc(room)}</span>
+          <span>Reservation: 1291809101</span>
+          <span class="stay-guests">${iconImg("user-group")} ${guests} guests</span>
         </div>
       </section>`;
   }
@@ -357,10 +214,6 @@ window.ALFRED_UI = (() => {
     return `<button type="button" class="btn btn-primary" ${attrs}>${esc(label)}</button>`;
   }
 
-  function dangerBtn(label, attrs = "") {
-    return `<button type="button" class="btn btn-danger" ${attrs}>${esc(label)}</button>`;
-  }
-
   function outlineBtn(label, attrs = "") {
     return `<button type="button" class="btn btn-outline" ${attrs}>${esc(label)}</button>`;
   }
@@ -374,15 +227,8 @@ window.ALFRED_UI = (() => {
     icon,
     iconImg,
     topNav,
-    homeNav,
     hotelCard,
     stayCard,
-    resMeta,
-    primaryStep,
-    checkRow,
-    mutedStayRow: lockedStayRow,
-    lockedStayRow,
-    dashTextLink,
     pcard,
     section,
     snackbar,
@@ -392,7 +238,6 @@ window.ALFRED_UI = (() => {
     field,
     selectField,
     primaryBtn,
-    dangerBtn,
     outlineBtn,
     ghostBtn,
     A,
